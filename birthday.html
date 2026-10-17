@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生日快乐</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;
+  background:#111827;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-family:"Microsoft Yahei",sans-serif;
+  overflow:hidden;
+}
+h1{
+  color:#ffd700;
+  font-size:clamp(2rem,8vw,4rem);
+  text-align:center;
+}
+p{
+  color:#fff;
+  margin-top:20px;
+  font-size:clamp(1rem,3vw,1.4rem);
+}
+.candle{
+  width:8px;
+  height:60px;
+  background:#fff;
+  margin:30px auto;
+  border-radius:2px;
+  position:relative;
+}
+.flame{
+  width:12px;
+  height:20px;
+  background:linear-gradient(#ff8800,#ffdd00);
+  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+  position:absolute;
+  top:-18px;
+  left:-2px;
+  animation:flicker 0.4s infinite alternate;
+}
+@keyframes flicker{
+  0%{transform:scale(1,1)}
+  100%{transform:scale(1.1,0.9)}
+}
+.confetti{
+  position:fixed;
+  width:10px;
+  height:10px;
+  top:-10px;
+  animation:fall linear forwards;
+}
+@keyframes fall{
+  to{
+    top:100vh;
+    transform:rotate(720deg);
+  }
+}
+</style>
+</head>
+<body>
+<h1>🎂 生日快乐！</h1>
+<p>愿你岁岁平安，万事顺意，永远闪闪发光✨</p>
+<div class="candle"><div class="flame"></div></div>
+<script>
+//彩带
+function createConfetti(){
+  const colors=['#ff4757','#ffd700','#2ed573','#1e90ff','#ff6b81']
+  const el=document.createElement('div')
+  el.className='confetti'
+  el.style.left=Math.random()*100+'vw'
+  el.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)]
+  el.style.animationDuration=Math.random()*3+2+'s'
+  document.body.appendChild(el)
+  setTimeout(()=>el.remove(),5000)
+}
+setInterval(createConfetti,150)
+</script>
+</body>
+</html>
