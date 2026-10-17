@@ -1,85 +1,105 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生日快乐</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  min-height:100vh;
-  background:#111827;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  font-family:"Microsoft Yahei",sans-serif;
-  overflow:hidden;
-}
-h1{
-  color:#ffd700;
-  font-size:clamp(2rem,8vw,4rem);
-  text-align:center;
-}
-p{
-  color:#fff;
-  margin-top:20px;
-  font-size:clamp(1rem,3vw,1.4rem);
-}
-.candle{
-  width:8px;
-  height:60px;
-  background:#fff;
-  margin:30px auto;
-  border-radius:2px;
-  position:relative;
-}
-.flame{
-  width:12px;
-  height:20px;
-  background:linear-gradient(#ff8800,#ffdd00);
-  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
-  position:absolute;
-  top:-18px;
-  left:-2px;
-  animation:flicker 0.4s infinite alternate;
-}
-@keyframes flicker{
-  0%{transform:scale(1,1)}
-  100%{transform:scale(1.1,0.9)}
-}
-.confetti{
-  position:fixed;
-  width:10px;
-  height:10px;
-  top:-10px;
-  animation:fall linear forwards;
-}
-@keyframes fall{
-  to{
-    top:100vh;
-    transform:rotate(720deg);
-  }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐呀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; font-family: "Microsoft YaHei", sans-serif; }
+        .screen { width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; padding: 2rem; }
+        .screen.active { display: flex; }
+        .cake { font-size: 8rem; margin-bottom: 2rem; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .next-btn { margin-top: 2rem; padding: 1rem 2.5rem; background: #ff6b9d; color: white; border: none; border-radius: 50px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,157,0.4); }
+        .photo-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin: 2rem 0; width: 95%; max-width: 600px; }
+        .photo-grid img { width:100%; border-radius:16px; object-fit:cover; }
+        .wish-text { max-width: 550px; line-height: 2; font-size: 1.1rem; color: #333; margin: 1rem 0; text-align: left; }
+    </style>
 </head>
 <body>
-<h1>🎂 生日快乐！</h1>
-<p>愿你岁岁平安，万事顺意，永远闪闪发光✨</p>
-<div class="candle"><div class="flame"></div></div>
-<script>
-//彩带
-function createConfetti(){
-  const colors=['#ff4757','#ffd700','#2ed573','#1e90ff','#ff6b81']
-  const el=document.createElement('div')
-  el.className='confetti'
-  el.style.left=Math.random()*100+'vw'
-  el.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)]
-  el.style.animationDuration=Math.random()*3+2+'s'
-  document.body.appendChild(el)
-  setTimeout(()=>el.remove(),5000)
-}
-setInterval(createConfetti,150)
-</script>
+    <!-- 第1屏：首页蛋糕 -->
+    <div class="screen active bg-gradient-to-b from-pink-100 to-purple-100" id="screen1">
+        <div class="cake">🎂</div>
+        <h1 class="text-4xl font-bold text-pink-600 mb-4">生日快乐！</h1>
+        <p class="text-gray-600 text-lg">愿你新的一岁，万事顺意✨</p>
+        <button class="next-btn" onclick="goTo(2)">开启祝福之旅 →</button>
+    </div>
+
+    <!-- 第2屏：相册1（4张图 img1~img4） -->
+    <div class="screen bg-gradient-to-b from-purple-100 to-blue-100" id="screen2">
+        <h2 class="text-3xl font-bold text-purple-600 mb-2">我们的回忆 · 壹</h2>
+        <div class="photo-grid">
+            <img src="img1.jpg" alt="照片">
+            <img src="img2.jpg" alt="照片">
+            <img src="img3.jpg" alt="照片">
+            <img src="img4.jpg" alt="照片">
+        </div>
+        <div>
+            <button class="next-btn" onclick="goTo(1)">← 返回</button>
+            <button class="next-btn" onclick="goTo(3)">下一页 →</button>
+        </div>
+    </div>
+
+    <!-- 第3屏：相册2（6张图 img5~img10） -->
+    <div class="screen bg-gradient-to-b from-blue-100 to-teal-100" id="screen3">
+        <h2 class="text-3xl font-bold text-blue-600 mb-2">我们的回忆 · 贰</h2>
+        <div class="photo-grid">
+            <img src="img5.jpg" alt="照片">
+            <img src="img6.jpg" alt="照片">
+            <img src="img7.jpg" alt="照片">
+            <img src="img8.jpg" alt="照片">
+            <img src="img9.jpg" alt="照片">
+            <img src="img10.jpg" alt="照片">
+        </div>
+        <div>
+            <button class="next-btn" onclick="goTo(2)">← 返回</button>
+            <button class="next-btn" onclick="goTo(4)">下一页 →</button>
+        </div>
+    </div>
+
+    <!-- 第4屏：留言页（5张图 img11~img15 + 文字） -->
+    <div class="screen bg-gradient-to-b from-teal-100 to-green-100" id="screen4">
+        <h2 class="text-3xl font-bold text-teal-600 mb-2">想对你说的话</h2>
+        <div class="photo-grid">
+            <img src="img11.jpg" alt="照片">
+            <img src="img12.jpg" alt="照片">
+            <img src="img13.jpg" alt="照片">
+            <img src="img14.jpg" alt="照片">
+            <img src="img15.jpg" alt="照片">
+        </div>
+        <div class="wish-text">
+亲爱的朋友：<br><br>
+又陪你走过了一年，这一年里我们一起经历了好多好多开心的、难过的瞬间。<br><br>
+新的一岁，希望你可以勇敢去做自己想做的事，不用怕犯错，不用怕迷茫，我永远在你身后站着。<br><br>
+祝你生日快乐，要天天开心呀！🎉
+        </div>
+        <div>
+            <button class="next-btn" onclick="goTo(3)">← 返回</button>
+            <button class="next-btn" onclick="goTo(1)">回到首页</button>
+        </div>
+    </div>
+
+    <script>
+        function goTo(num) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen' + num).classList.add('active');
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+        window.onload = () => {
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+    </script>
 </body>
 </html>
+
