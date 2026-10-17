@@ -1,105 +1,391 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生日快乐呀</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; font-family: "Microsoft YaHei", sans-serif; }
-        .screen { width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; padding: 2rem; }
-        .screen.active { display: flex; }
-        .cake { font-size: 8rem; margin-bottom: 2rem; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        .next-btn { margin-top: 2rem; padding: 1rem 2.5rem; background: #ff6b9d; color: white; border: none; border-radius: 50px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,157,0.4); }
-        .photo-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin: 2rem 0; width: 95%; max-width: 600px; }
-        .photo-grid img { width:100%; border-radius:16px; object-fit:cover; }
-        .wish-text { max-width: 550px; line-height: 2; font-size: 1.1rem; color: #333; margin: 1rem 0; text-align: left; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>生日快乐，朱滢霏</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:"PingFang SC","Microsoft Yahei",sans-serif; }
+  body { background: linear-gradient(180deg,#e0f2fe 0%,#bfdbfe 50%,#93c5fd 100%); }
+  .screen { position:absolute; inset:0; display:none; flex-direction:column; justify-content:center; align-items:center; padding:24px; overflow:hidden; }
+  .screen.active { display:flex; }
+  .btn { margin-top:18px; padding:12px 32px; background:#2563eb; color:#fff; border:none; border-radius:999px; font-size:16px; cursor:pointer; box-shadow:0 6px 18px rgba(37,99,235,.35); }
+  .btn.ghost { background:#fff; color:#1e40af; box-shadow:0 4px 12px rgba(30,64,175,.15); }
+
+  /* 1. 加大信封 + 交叉丝带 */
+  .env-wrap { position:relative; width:360px; height:240px; }
+  .env { position:absolute; inset:0; background:#fef3c7; border-radius:10px; box-shadow:0 16px 40px rgba(30,64,175,.3); }
+  .env-flap { position:absolute; top:0; left:0; width:0; height:0; border-left:180px solid transparent; border-right:180px solid transparent; border-top:120px solid #fbbf24; transform-origin:top; transition:transform .8s ease; z-index:3; }
+  .env.open .env-flap { transform:rotateX(180deg); z-index:1; }
+  .letter { position:absolute; left:12px; right:12px; top:12px; bottom:12px; background:#fff; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#1e40af; transition:transform .8s ease .3s; z-index:2; }
+  .env.open .letter { transform:translateY(-70px); }
+  .ribbon-v, .ribbon-h { position:absolute; z-index:5; cursor:pointer; transition:all .7s cubic-bezier(.5,-.3,.7,1.3); }
+  .ribbon-v { top:0; left:50%; width:36px; height:100%; transform:translateX(-50%); background:repeating-linear-gradient(45deg,#dc2626 0,#dc2626 8px,#b91c1c 8px,#b91c1c 16px); box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .ribbon-h { left:0; top:50%; height:36px; width:100%; transform:translateY(-50%); background:repeating-linear-gradient(-45deg,#ef4444 0,#ef4444 8px,#dc2626 8px,#dc2626 16px); box-shadow:0 2px 8px rgba(0,0,0,.2); }
+  .bow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:70px; height:50px; z-index:6; cursor:pointer; }
+  .bow .loop { position:absolute; top:5px; width:30px; height:36px; background:#dc2626; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; box-shadow:inset -4px -6px 8px rgba(0,0,0,.2); }
+  .bow .loop.l { left:0; transform:rotate(-20deg); }
+  .bow .loop.r { right:0; transform:rotate(20deg); }
+  .bow .knot { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:20px; height:20px; background:#991b1b; border-radius:50%; z-index:2; }
+  .ribbon-v.pulled { transform:translateX(-50%) rotate(-40deg) translateY(-200px); opacity:0; }
+  .ribbon-h.pulled { transform:translateY(-50%) rotate(30deg) translateX(200px); opacity:0; }
+  .bow.pulled { transform:translate(-50%,-50%) scale(0) rotate(180deg); opacity:0; }
+
+  /* 2. 认识天数 */
+  .big-num { font-size:88px; font-weight:900; color:#1e3a8a; text-shadow:0 4px 0 #93c5fd; animation:pop .8s ease; }
+  @keyframes pop { 0%{transform:scale(.3);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+  /* 3-6. 照片墙 */
+  .photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; max-width:560px; margin:14px 0; }
+  .photo-grid img { width:100%; height:150px; object-fit:cover; border-radius:12px; box-shadow:0 4px 12px rgba(30,64,175,.2); }
+  .caption { max-width:560px; font-size:13px; line-height:1.9; color:#1e3a8a; text-align:left; background:rgba(255,255,255,.6); padding:12px 16px; border-radius:12px; width:100%; }
+  .caption b { color:#dc2626; }
+
+  /* 7. 小档案 */
+  .scroll-col { width:100%; max-width:560px; height:60vh; overflow-y:auto; padding:10px; -webkit-mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent); mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent); }
+  .profile-card { background:#fff; border-radius:12px; padding:12px 16px; margin-bottom:10px; box-shadow:0 3px 10px rgba(30,64,175,.12); font-size:14px; color:#1e3a8a; }
+  .profile-card span { color:#64748b; font-size:12px; margin-right:8px; }
+
+  /* 8. 未来约定 */
+  .todo-item { display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 18px; margin-bottom:10px; width:100%; max-width:480px; box-shadow:0 3px 10px rgba(30,64,175,.12); cursor:pointer; font-size:15px; color:#1e3a8a; }
+  .todo-item .box { width:22px; height:22px; border:2px solid #2563eb; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; }
+  .todo-item.done { background:#dbeafe; text-decoration:line-through; }
+  .todo-item.done .box { background:#2563eb; }
+
+  /* 9. 气球 */
+  .balloon { position:absolute; bottom:-120px; width:60px; height:75px; border-radius:50% 50% 50% 50% / 55% 55% 45% 45%; cursor:pointer; animation:floatUp linear forwards; box-shadow:inset -6px -8px 12px rgba(0,0,0,.15); }
+  .balloon::after { content:""; position:absolute; bottom:-18px; left:50%; width:1px; height:20px; background:#64748b; }
+  @keyframes floatUp { 0%{transform:translateY(0) translateX(0);opacity:1} 100%{transform:translateY(-120vh) translateX(30px);opacity:.9} }
+  .balloon.pop { animation:popB .3s forwards; }
+  @keyframes popB { 0%{transform:scale(1);opacity:1} 100%{transform:scale(1.8);opacity:0} }
+
+  /* 10. 蛋糕 */
+  .cake { font-size:120px; position:relative; animation:bounce 2s infinite alternate; }
+  @keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-10px)} }
+  .candle { position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-size:30px; cursor:pointer; }
+  .candle.out { display:none; }
+  .blow-hint { color:#1e3a8a; margin-top:10px; font-size:14px; }
+
+  /* 11. 彩虹 */
+  .rainbow-bar { width:100%; max-width:420px; height:44px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; cursor:pointer; margin:4px 0; border-radius:8px; transition:transform .3s; }
+  .rainbow-bar:hover { transform:scale(1.03); }
+  .rainbow-bar .blessing { display:none; font-size:13px; }
+  .rainbow-bar.reveal .blessing { display:inline; }
+  .rainbow-bar.reveal .label { display:none; }
+
+  h2.title { font-size:26px; font-weight:800; color:#1e3a8a; margin-bottom:14px; text-align:center; }
+  p.sub { color:#3b5aa0; font-size:14px; margin-bottom:10px; text-align:center; }
+</style>
 </head>
 <body>
-    <!-- 第1屏：首页蛋糕 -->
-    <div class="screen active bg-gradient-to-b from-pink-100 to-purple-100" id="screen1">
-        <div class="cake">🎂</div>
-        <h1 class="text-4xl font-bold text-pink-600 mb-4">生日快乐！</h1>
-        <p class="text-gray-600 text-lg">愿你新的一岁，万事顺意✨</p>
-        <button class="next-btn" onclick="goTo(2)">开启祝福之旅 →</button>
-    </div>
 
-    <!-- 第2屏：相册1（4张图 img1~img4） -->
-    <div class="screen bg-gradient-to-b from-purple-100 to-blue-100" id="screen2">
-        <h2 class="text-3xl font-bold text-purple-600 mb-2">我们的回忆 · 壹</h2>
-        <div class="photo-grid">
-            <img src="img1.jpg" alt="照片">
-            <img src="img2.jpg" alt="照片">
-            <img src="img3.jpg" alt="照片">
-            <img src="img4.jpg" alt="照片">
-        </div>
-        <div>
-            <button class="next-btn" onclick="goTo(1)">← 返回</button>
-            <button class="next-btn" onclick="goTo(3)">下一页 →</button>
-        </div>
+<!-- 1. 开场信封 -->
+<div class="screen active" id="s1">
+  <h2 class="title">有一封信，送给你</h2>
+  <p class="sub">↓ 扯开丝带，打开它 ↓</p>
+  <div class="env-wrap">
+    <div class="env" id="env">
+      <div class="letter">✨ To 滢霏 ✨</div>
+      <div class="env-flap"></div>
     </div>
-
-    <!-- 第3屏：相册2（6张图 img5~img10） -->
-    <div class="screen bg-gradient-to-b from-blue-100 to-teal-100" id="screen3">
-        <h2 class="text-3xl font-bold text-blue-600 mb-2">我们的回忆 · 贰</h2>
-        <div class="photo-grid">
-            <img src="img5.jpg" alt="照片">
-            <img src="img6.jpg" alt="照片">
-            <img src="img7.jpg" alt="照片">
-            <img src="img8.jpg" alt="照片">
-            <img src="img9.jpg" alt="照片">
-            <img src="img10.jpg" alt="照片">
-        </div>
-        <div>
-            <button class="next-btn" onclick="goTo(2)">← 返回</button>
-            <button class="next-btn" onclick="goTo(4)">下一页 →</button>
-        </div>
+    <div class="ribbon-h" id="ribbonH"></div>
+    <div class="ribbon-v" id="ribbonV"></div>
+    <div class="bow" id="bow">
+      <div class="loop l"></div>
+      <div class="loop r"></div>
+      <div class="knot"></div>
     </div>
+  </div>
+  <button class="btn" id="openBtn" style="display:none" onclick="go(2)">拆开这封信 →</button>
+</div>
 
-    <!-- 第4屏：留言页（5张图 img11~img15 + 文字） -->
-    <div class="screen bg-gradient-to-b from-teal-100 to-green-100" id="screen4">
-        <h2 class="text-3xl font-bold text-teal-600 mb-2">想对你说的话</h2>
-        <div class="photo-grid">
-            <img src="img11.jpg" alt="照片">
-            <img src="img12.jpg" alt="照片">
-            <img src="img13.jpg" alt="照片">
-            <img src="img14.jpg" alt="照片">
-            <img src="img15.jpg" alt="照片">
-        </div>
-        <div class="wish-text">
-亲爱的朋友：<br><br>
-又陪你走过了一年，这一年里我们一起经历了好多好多开心的、难过的瞬间。<br><br>
-新的一岁，希望你可以勇敢去做自己想做的事，不用怕犯错，不用怕迷茫，我永远在你身后站着。<br><br>
-祝你生日快乐，要天天开心呀！🎉
-        </div>
-        <div>
-            <button class="next-btn" onclick="goTo(3)">← 返回</button>
-            <button class="next-btn" onclick="goTo(1)">回到首页</button>
-        </div>
-    </div>
+<!-- 2. 认识天数 -->
+<div class="screen" id="s2">
+  <p class="sub">我们已经一起走过</p>
+  <div class="big-num" id="dayNum">0</div>
+  <p class="sub" style="font-size:18px;color:#1e3a8a;">天啦</p>
+  <button class="btn" onclick="go(3)">继续 →</button>
+</div>
 
-    <script>
-        function goTo(num) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen' + num).classList.add('active');
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-        }
-        window.onload = () => {
-            confetti({
-                particleCount: 200,
-                spread: 100,
-                origin: { y: 0.6 }
-            });
-        }
-    </script>
+<!-- 3. 照片墙1 校园时光 -->
+<div class="screen" id="s3">
+  <h2 class="title">美好的校园时光之…</h2>
+  <div class="photo-grid">
+    <img src="img1.jpg"><img src="img2.jpg">
+    <img src="img3.jpg"><img src="img4.jpg">
+  </div>
+  <div class="caption">
+    <b>操场排球</b> → 如果照片流失，那就让我从一张同学观望图开始<br>
+    <b>雪天合影</b> → 你往那一站就是个兵啊<br>
+    <b>教室举手机</b> → 嘿嘿没想到吧我没删
+  </div>
+  <button class="btn" onclick="go(4)">下一组 →</button>
+</div>
+
+<!-- 4. 照片墙2 偷拍写真 -->
+<div class="screen" id="s4">
+  <h2 class="title">偷拍写真</h2>
+  <div class="photo-grid">
+    <img src="img5.jpg"><img src="img6.jpg">
+    <img src="img7.jpg"><img src="img8.jpg">
+  </div>
+  <div class="caption">
+    <b>红手链</b> → 送你的手链还有可能找到吗<br>
+    <b>沙发侧躺</b> → 虽然构图有点怪，但是体现的帅气很全面啊<br>
+    <b>黑polo衫</b> → 最帅的一张　<b>吉他拨片</b> → 最帅的一集
+  </div>
+  <div>
+    <button class="btn ghost" onclick="go(3)">← 上一组</button>
+    <button class="btn" onclick="go(5)">下一组 →</button>
+  </div>
+</div>
+
+<!-- 5. 照片墙3 品肉时光 -->
+<div class="screen" id="s5">
+  <h2 class="title">最后的品肉时光</h2>
+  <div class="photo-grid">
+    <img src="img9.jpg"><img src="img10.jpg">
+    <img src="img11.jpg"><img src="img12.jpg">
+  </div>
+  <div class="caption">
+    <b>烤串一堆</b> → 倒数第三张吃肉的时光，你还是蛮有嘴福的<br>
+    <b>户外烧烤</b> → 其实那天牌局我作弊了来着<br>
+    <b>餐桌+Switch</b> → 最不会打游戏之人的诞生　<b>校服坐姿笑</b> → 再见你就变成素食主义了
+  </div>
+  <div>
+    <button class="btn ghost" onclick="go(4)">← 上一组</button>
+    <button class="btn" onclick="go(6)">下一组 →</button>
+  </div>
+</div>
+
+<!-- 6. 照片墙4 旅途 -->
+<div class="screen" id="s6">
+  <h2 class="title">旅途未完待续之…</h2>
+  <div class="photo-grid">
+    <img src="img13.jpg"><img src="img14.jpg"><img src="img15.jpg">
+  </div>
+  <div class="caption">
+    <b>秋千+地铁站</b> → 溜腿旅途的开始<br>
+    <b>博物馆石头</b> → 和你的旅途总是充满了意外之喜不是吗<br>
+    <b>国子监牌坊</b> → 这个绝对是色彩搭配最好的一集
+  </div>
+  <div>
+    <button class="btn ghost" onclick="go(5)">← 上一组</button>
+    <button class="btn" onclick="go(7)">继续 →</button>
+  </div>
+</div>
+
+<!-- 7. 小档案 -->
+<div class="screen" id="s7">
+  <h2 class="title">六年相处成果</h2>
+  <p class="sub">（下滑看 22 条小档案）</p>
+  <div class="scroll-col" id="profileCol"></div>
+  <button class="btn" onclick="go(8)">继续 →</button>
+</div>
+
+<!-- 8. 未来约定 -->
+<div class="screen" id="s8">
+  <h2 class="title">新一岁，想一起做的事</h2>
+  <div id="todoList"></div>
+  <button class="btn" id="todoNext" onclick="go(9)" style="display:none;">去许愿 →</button>
+</div>
+
+<!-- 9. 气球许愿 -->
+<div class="screen" id="s9">
+  <h2 class="title">戳破气球许个愿</h2>
+  <p class="sub">还有 <span id="wishLeft">3</span> 个愿望没许</p>
+  <button class="btn" id="wishNext" onclick="go(10)" style="display:none;">许愿完成 →</button>
+</div>
+
+<!-- 10. 蛋糕 -->
+<div class="screen" id="s10">
+  <h2 class="title">闭上眼，许个愿吧</h2>
+  <div class="cake">🎂
+    <div class="candle" id="candle">🕯️</div>
+  </div>
+  <p class="blow-hint" id="blowHint">点一下蜡烛，把它吹灭</p>
+  <button class="btn" id="cakeNext" onclick="go(11)" style="display:none;">继续 →</button>
+</div>
+
+<!-- 11. 彩虹 -->
+<div class="screen" id="s11">
+  <h2 class="title">七色彩虹，七种祝福</h2>
+  <p class="sub">点每一条颜色，听听那句话</p>
+  <div id="rainbow"></div>
+  <button class="btn" id="rainbowNext" onclick="go(12)" style="display:none;">最后 →</button>
+</div>
+
+<!-- 12. 结尾 -->
+<div class="screen" id="s12">
+  <h2 class="title" style="font-size:34px;">生日快乐，朱滢霏 🎉</h2>
+  <p class="sub" style="font-size:16px;">现在，下楼吧，我在楼下等你。</p>
+  <div style="font-size:80px; margin-top:20px;">🎆🎇🎆</div>
+</div>
+
+<script>
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  if(n===2) runCount();
+  if(n===9) startBalloons();
+  if(n===12) finale();
+}
+
+/* 1. 交叉丝带 */
+function pullRibbon(){
+  document.getElementById('ribbonV').classList.add('pulled');
+  document.getElementById('ribbonH').classList.add('pulled');
+  document.getElementById('bow').classList.add('pulled');
+  setTimeout(()=>{
+    document.getElementById('env').classList.add('open');
+    document.getElementById('openBtn').style.display='inline-block';
+  },600);
+}
+document.getElementById('bow').addEventListener('click',pullRibbon);
+document.getElementById('ribbonV').addEventListener('click',pullRibbon);
+document.getElementById('ribbonH').addEventListener('click',pullRibbon);
+
+/* 2. 天数 */
+let counted=false;
+function runCount(){
+  if(counted) return; counted=true;
+  const target=1881, el=document.getElementById('dayNum');
+  let cur=0;
+  const step=Math.ceil(target/60);
+  const t=setInterval(()=>{
+    cur+=step;
+    if(cur>=target){cur=target;clearInterval(t);}
+    el.textContent=cur;
+  },20);
+}
+
+/* 7. 小档案22条 */
+const profiles=[
+  ["口头禅","（例：害，没事）"],
+  ["最爱吃的","（例：火锅/烤串）"],
+  ["最怕的","（例：虫子）"],
+  ["最爱的歌","（例：___）"],
+  ["难忘瞬间1","（例：高考完那个晚上）"],
+  ["难忘瞬间2","（例：雪天合影那天）"],
+  ["你眼中的她·1","笑起来很好看"],
+  ["你眼中的她·2","看起来冷酷其实很软"],
+  ["小习惯1","（例：发呆）"],
+  ["小习惯2","（例：爱揉眼睛）"],
+  ["最爱颜色","（例：蓝）"],
+  ["最爱的季节","（例：冬天）"],
+  ["最想去的地方","（例：海边）"],
+  ["她的小倔强","（例：嘴硬）"],
+  ["她的温柔时刻","（例：默默帮人）"],
+  ["最像的动物","（例：猫）"],
+  ["最常说的语气词","（例：哦）"],
+  ["她的小才华","（例：画画/写字）"],
+  ["最可爱的瞬间","（例：睡着）"],
+  ["最帅的瞬间","（例：穿黑polo那次）"],
+  ["六年总结·1","（例：从校服到现在）"],
+  ["六年总结·2","（例：谢谢你一直在）"],
+];
+const pc=document.getElementById('profileCol');
+profiles.forEach(p=>{
+  const d=document.createElement('div');
+  d.className='profile-card';
+  d.innerHTML='<span>'+p[0]+'</span>'+p[1];
+  pc.appendChild(d);
+});
+
+/* 8. 约定 */
+const todos=["一起看一场日出","去一次海边","吃遍没吃过的店","每年生日都要见面"];
+const tl=document.getElementById('todoList');
+let doneCount=0;
+todos.forEach(t=>{
+  const d=document.createElement('div');
+  d.className='todo-item';
+  d.innerHTML='<div class="box">✓</div><div>'+t+'</div>';
+  d.addEventListener('click',()=>{
+    d.classList.toggle('done');
+    if(d.classList.contains('done')) doneCount++; else doneCount--;
+    if(doneCount===todos.length) document.getElementById('todoNext').style.display='inline-block';
+  });
+  tl.appendChild(d);
+});
+
+/* 9. 气球 */
+let wishes=3, balloonTimer=null;
+const colors=['#f87171','#fb923c','#facc15','#4ade80','#60a5fa','#a78bfa','#f472b6'];
+function startBalloons(){
+  if(balloonTimer) return;
+  spawnBalloon();
+  balloonTimer=setInterval(spawnBalloon,900);
+}
+function spawnBalloon(){
+  const s=document.getElementById('s9');
+  const b=document.createElement('div');
+  b.className='balloon';
+  b.style.left=Math.random()*90+'%';
+  b.style.background=colors[Math.floor(Math.random()*colors.length)];
+  const dur=(4+Math.random()*3);
+  b.style.animationDuration=dur+'s';
+  b.addEventListener('click',()=>{
+    b.classList.add('pop');
+    setTimeout(()=>b.remove(),300);
+    wishes--;
+    document.getElementById('wishLeft').textContent=wishes;
+    confetti({particleCount:40,spread:50,origin:{x:Math.random(),y:0.7}});
+    if(wishes<=0){
+      clearInterval(balloonTimer);
+      document.getElementById('wishNext').style.display='inline-block';
+    }
+  });
+  s.appendChild(b);
+  setTimeout(()=>b.remove(),dur*1000+200);
+}
+
+/* 10. 蛋糕 */
+document.getElementById('candle').addEventListener('click',function(){
+  this.classList.add('out');
+  document.getElementById('blowHint').textContent='蜡烛吹灭啦～';
+  confetti({particleCount:180,spread:100,origin:{y:0.6}});
+  setTimeout(()=>{ document.getElementById('cakeNext').style.display='inline-block'; },800);
+});
+
+/* 11. 彩虹 */
+const rainbow=[
+  ['#ef4444','红','愿你被世界温柔以待'],
+  ['#f97316','橙','愿你想吃的都能吃到'],
+  ['#eab308','黄','愿你天天都有好心情'],
+  ['#22c55e','绿','愿你身体健健康康'],
+  ['#06b6d4','青','愿你想去的地方都能到达'],
+  ['#3b82f6','蓝','愿你遇到的人都很善良'],
+  ['#a855f7','紫','愿你永远做自己喜欢的事'],
+];
+const rw=document.getElementById('rainbow');
+let revealed=0;
+rainbow.forEach(r=>{
+  const d=document.createElement('div');
+  d.className='rainbow-bar';
+  d.style.background=r[0];
+  d.innerHTML='<span class="label">'+r[1]+'色</span><span class="blessing">'+r[2]+'</span>';
+  d.addEventListener('click',()=>{
+    if(d.classList.contains('reveal')) return;
+    d.classList.add('reveal');
+    revealed++;
+    if(revealed===rainbow.length) document.getElementById('rainbowNext').style.display='inline-block';
+  });
+  rw.appendChild(d);
+});
+
+/* 12. 烟花 */
+function finale(){
+  let count=0;
+  const t=setInterval(()=>{
+    confetti({particleCount:80,spread:120,origin:{x:Math.random(),y:Math.random()*0.5}});
+    if(++count>6) clearInterval(t);
+  },400);
+}
+</script>
 </body>
 </html>
+
 
